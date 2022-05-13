@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
+
 const {
   studentsGet,
   studentsUpdate,
   studentsDelete,
-  studentsCreate,
   fetchStudent,
+  signup,
+  signin,
 } = require('./students.controllers');
 
 router.param('studentId', async (req, res, next, studentId) => {
@@ -21,10 +24,15 @@ router.param('studentId', async (req, res, next, studentId) => {
 });
 
 router.get('/', studentsGet);
-router.post('/', studentsCreate);
+router.post('/signup', signup);
+router.post(
+  '/signin',
+  passport.authenticate('local', { session: false }),
+  signin
+);
 
-router.delete('/:coarseId', studentsDelete);
+router.delete('/:studentId', studentsDelete);
 
-router.put('/:coarseId', studentsUpdate);
+router.put('/:studentId', studentsUpdate);
 
 module.exports = router;
