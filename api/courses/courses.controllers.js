@@ -1,4 +1,4 @@
-const { Course } = require('../../db/models');
+const { Course, Student, Teacher } = require('../../db/models');
 
 exports.fetchCourse = async (courseId, next) => {
   try {
@@ -9,12 +9,13 @@ exports.fetchCourse = async (courseId, next) => {
   }
 };
 
-exports.coursesCreate = async (req, res) => {
+exports.courseEnroll = async (req, res, next) => {
   try {
-    const newCourse = await Course.create(req.body);
-    res.status(201).json(newCourse);
+    const { studentId } = req.params;
+    await req.course.addStudent(studentId);
+    res.status(204).end();
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -38,7 +39,22 @@ exports.coursesUpdate = async (req, res) => {
 
 exports.coursesGet = async (req, res) => {
   try {
-    const courses = await Course.findAll();
+    const courses = await Course.findAll({
+      attributes: { exclude: ['teacherId', 'createdAt', 'updatedAt'] },
+      include: [
+        {
+          model: Teacher,
+          as: 'teacher',
+          attributes: ['name'],
+        },
+        {
+          model: Student,
+          as: 'students',
+          through: { attributes: [] },
+        },
+      ],
+    });
+
     res.json(courses);
   } catch (error) {
     res.status(500).json({ message: error.message });
